@@ -56,6 +56,7 @@ pm2.5_35 PM2.5 pollution, population exposed to levels exceeding WHO Interim Tar
 36ug/m3 (
 battleDeaths Battle-related deaths (number of people)
 1 Load and check data (5pt)
+
 You first task is to do a very simple data check:
 1. (1pt) For solving the problems, and answering the questions, create a new rmarkdown docu-
 ment with an appropriate title. See https://faculty.washington.edu/otoomet/info201-book/
@@ -64,6 +65,7 @@ r-markdown.html#r-markdown-rstudio-creating.
 3. (2pt) Print a small sample of data. Does it look OK?
 
 2 Descriptive statistics (15pt)
+
 1. (3pt) How many countries are there in the dataset? Analyze all three: iso3, iso2 and name.
 2. If you did this correctly, you saw that there are more names than iso-2 codes, and there are
 even more iso3 -codes. What is going on? Can you find it out?
@@ -75,6 +77,7 @@ Hint: two of these entitites are CHANISL and NLD CURACAO.
 3. (2pt) What is the minimum and maximum year in these data?
 
 3 CO2 emissions (30pt)
+
 Next, let’s analyze CO2 emissions.
 1. (2pt) How many missing co2 emissions are there for each year? Analyze both missing CO2
 and co2_PC. Which years have most missing data?
