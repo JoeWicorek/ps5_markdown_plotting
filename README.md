@@ -25,6 +25,7 @@ be able to follow all the code if the line is too long–most of us are using sm
 (And again–you want to keep your graders happy!)
 
 Gapminder data
+
 We use gapminder dataset, downloaded from https://www.gapminder.org/data/, however, the
 data structure there is quire complex, please use the dataset provided on canvas (in files/data).
 The variables are:
