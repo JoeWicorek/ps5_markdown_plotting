@@ -1,7 +1,7 @@
 # ps5_markdown_plotting
 
 INFO201 Problem Set: rmarkdown and plotting
-February 13, 2023
+
 Instructions
 This is a problem set about rmarkdown and plotting (using ggplot). Unlike the previous problem
 sets, this one does not give you a ready-made GH repo with a code file–it is now your taks to create
@@ -22,6 +22,7 @@ potentially your boss).
 •Do not make code lines too long. 80-100 characters is a good choice. Your grader may not
 be able to follow all the code if the line is too long–most of us are using small laptop screens!
 (And again–you want to keep your graders happy!)
+
 Gapminder data
 We use gapminder dataset, downloaded from https://www.gapminder.org/data/, however, the
 data structure there is quire complex, please use the dataset provided on canvas (in files/data).
