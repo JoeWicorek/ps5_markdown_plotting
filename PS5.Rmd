@@ -156,15 +156,91 @@ ggplot(mydata_filtered, aes(x = time, y = co2, color = name)) +
     China by far has the highest and most dramatic increase in emissions, US has been dropping slightly since about 2005 \
 
 3. (5pt) Now let’s analyze the CO2 emissions per capita (*co2_PC*). Make a similar plot of thesame countries. What does this figure suggest? \
+```{r 3-3,echo=FALSE, message=TRUE, warning=TRUE}
+# Filter the data to only include the U.S, China, and India, Russia, Canada
+mydata_filtered <- gapdata %>% 
+  filter(name %in% c("United States of America", "China", "India", "Russian Federation", "Canada") & !is.na(name) &!is.na(co2_PC))
+# Create the plot
+ggplot(mydata_filtered, aes(x = time, y = co2_PC, color = name)) +
+  geom_line() +
+  labs(x = "Year", y = "Total CO2 per capita Emissions (Millions of metric tons)", 
+       title = "Total CO2 Emissions over Time for the U.S, China, and India") +
+  scale_color_manual(values = c("#0072B2", "#D55E00", "#009E73", "#E69F00", "56B4E9"))  # Set custom colors for each country
+#Countries are much closer in emissions on a per capita basis. China is still rising per capital and other countries are falling.
+```
+    \
+    Countries are much closer together in emissions on a per capita basis. China is still rising per capital and other countries are falling. \
 
 4. (6pt) Compute average CO2 emissions per capita across the continents (assume *region* is the same as continent). Comment what do you see. \
 Note: just compute averages over countries and ignore the fact that countries are of different size. \
 Hint: Americas 2016 should be 4.80. \
+```{r 3-4, echo=FALSE, message=TRUE, warning=TRUE}
+co2_per_capita_by_country <- gapdata %>% 
+  select(time,name, region, co2_PC) %>% 
+  filter(!is.na(region) & !is.na(co2_PC))
+# Group the data by continent and calculate the mean of CO2_per_capita
+avg_co2_per_capita_by_continent <- co2_per_capita_by_country %>% 
+  group_by(region,time) %>% 
+  summarize(avg_co2_per_capita = mean(co2_PC),.groups ="drop")
+
+ggplot(avg_co2_per_capita_by_continent, aes(x = time, y = avg_co2_per_capita, color = region)) +
+  geom_line() +
+  labs(x = "Year", y = "Total CO2 per capita Emissions (Millions of metric tons)", 
+       title = "Total CO2 Emissions over Time per continent") +
+  scale_color_manual(values = c("#0072B2", "#D55E00", "#009E73", "#E69F00", "56B4E9"))
+```
+    \
+    Emissions per continents has been mostly steady for the past 30 years. \
 
 5. (7pt) Make a barplot where you show the previous results–average CO2 emissions per capita across continents in 1960 and 2016. \
-Hint: it should look something along these lines(**Please refer to the spec for the graph**) \
+```{r 3-5, echo=FALSE, message=TRUE, warning=TRUE}
+co2_per_capita_by_continent_1960_2016 <- co2_per_capita_by_country %>% 
+  filter(time %in% c(1960, 2016))
+# Group the data by year and continent and calculate the mean of CO2_per_capita
+avg_co2_per_capita_by_continent_1960_2016 <- co2_per_capita_by_continent_1960_2016 %>% 
+  group_by(time, region) %>% 
+  summarize(avg_co2_per_capita = mean(co2_PC),.groups ="drop")
+# Plot the results
+ggplot(avg_co2_per_capita_by_continent_1960_2016, aes(x = region, y = avg_co2_per_capita, fill = factor(time))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Average CO2 Emissions per Capita by Continent", x = "Continet", y = "CO2 Emissions per Capita", fill="Year") +
+  scale_fill_manual(values = c("blue", "red")) +
+  theme_minimal()
+```
+
 
 6. Which countries are the three largest, and three smallest CO2 emitters (in terms of CO2 per capita) in 2019 for each continent? (Assume *region* is continent). \
+```{r 3-6, results="asis", echo=FALSE, message=TRUE, warning=TRUE}
+# Select the relevant columns and remove rows with missing data
+co2_per_capita_by_country <- gapdata %>%
+  select(time, region, name, co2_PC) %>%
+  filter(!is.na(region) & !is.na(name) & !is.na(co2_PC))
+#co2_per_capita_by_country
+# Filter for 2019
+co2_per_capita_2019 <- co2_per_capita_by_country %>%
+  filter(time == 2016)
+#co2_per_capita_2019
+# Group the data by continent and country and calculate the mean of CO2_per_capita
+avg_co2_per_capita_by_continent_country <- co2_per_capita_2019 %>%
+  group_by(region, name) %>%
+  summarize(avg_co2_per_capita = mean(co2_PC),.groups="drop")
+#avg_co2_per_capita_by_continent_country
+# Find the three largest CO2 emitters per continent
+largest_emitters <- avg_co2_per_capita_by_continent_country %>%
+  group_by(region) %>%
+  top_n(3, avg_co2_per_capita)
+# Find the three smallest CO2 emitters per continent
+smallest_emitters <- avg_co2_per_capita_by_continent_country %>%
+  group_by(region) %>%
+  slice_tail(n = 3) %>%
+  arrange(region, avg_co2_per_capita)
+# Print the results
+cat("The three largest CO2 emitters per continent in 2019 are:\n")
+knitr::kable(largest_emitters)
+cat("\nThe three smallest CO2 emitters per continent in 2019 are:\n")
+knitr::kable(smallest_emitters)
+```
+
 
 
 ---------------------------------------------------------------------
@@ -174,27 +250,150 @@ Let’s look at GDP per capita (*GDP_PC*)
 
 1. (8pt) Make a scatterplot of GDP per capita versus life expectancy by country, using data for 1960. Make the point size dependent on the country size, and color those according to the continent. Feel free to adjust the plot in other ways to make it better. \
 Comment what do you see there. \
+```{r 4-1, echo=FALSE, message=TRUE, warning=TRUE}
+data_1960 <- gapdata %>%
+  filter(time == 1960 & !is.na(GDP_PC) & !is.na(lifeExpectancy) & !is.na(region) & !is.na(name))
+
+# Create a named vector of colors for each continent
+continent_colors <- c("Africa" = "red", "Asia" = "green", "Europe" = "blue", "Americas" = "purple", "Oceania" = "orange")
+
+# Create a named vector of sizes for each country
+country_sizes <- setNames(data_1960$totalPopulation / 1000000, data_1960$name)
+
+# Create the plot
+ggplot(data_1960, aes(x = GDP_PC, y = lifeExpectancy, color = region)) +
+  geom_point(aes(size = country_sizes), alpha = 0.6) +
+  scale_color_manual(values = continent_colors) +
+  scale_size_continuous(range = c(1, 10)) +
+  labs(title = "GDP per capita vs. life expectancy by country in 1960", x = "GDP per capita (USD)", y = "Life expectancy (years)") +
+  theme_bw()
+# the poorer countries (by GDP) have a lower life expectancy
+```
+    \
+    The poorer countries (by GDP) have a lower life expectancy. \
 
 2. (4pt) Make a similar plot, but this time use 2019 data only. \
+```{r 4-2, echo=FALSE, message=TRUE, warning=TRUE}
+# Select the relevant columns and remove rows with missing data
+data_1960 <- gapdata %>%
+  filter(time == 2019 & !is.na(GDP_PC) & !is.na(lifeExpectancy) & !is.na(region) & !is.na(name))
+
+# Create a named vector of colors for each continent
+continent_colors <- c("Africa" = "red", "Asia" = "green", "Europe" = "blue", "Americas" = "purple", "Oceania" = "orange")
+
+# Create a named vector of sizes for each country
+country_sizes <- setNames(data_1960$totalPopulation / 1000000, data_1960$name)
+
+# Create the plot
+ggplot(data_1960, aes(x = GDP_PC, y = lifeExpectancy, color = region)) +
+  geom_point(aes(size = country_sizes), alpha = 0.6) +
+  scale_color_manual(values = continent_colors) +
+  scale_size_continuous(range = c(1, 10)) +
+  labs(title = "GDP per capita vs. life expectancy by country in 2019", x = "GDP per capita (USD)", y = "Life expectancy (years)") +
+  theme_bw()
+```
 
 
 3. (6pt) Compare these two plots and comment what do you see. How has world developed through the last 60 years? \
 
+    We are improving the life expectancy of lower GDP countries (with exception of Africa) \
+
 4. (6pt) Compute the average life expectancy for each continent in 1960 and 2019. Do the results fit with what do you see on the figures? \
 Note: here as *average*I mean just average over countries, ignore the fact that countries are of different size.\
+```{r 4-4, echo=FALSE, message=TRUE, warning=TRUE}
+# Compute the average life expectancy for each continent in 1960 and 2019
+life_expectancy_avg <- gapdata %>%
+  filter(!is.na(lifeExpectancy) & !is.na(time) & time %in% c(1960, 2019) & !is.na(region)) %>%
+  group_by(region, time) %>%
+  summarize(avg_life_expectancy = mean(lifeExpectancy),.groups="drop")
 
+# Print the results
+knitr::kable(life_expectancy_avg)
+#Yes
+```
+    
+    Yes these results align with the figures. 
+    
 5. (8pt) Compute the average LE growth from 1960-2019 across the continents. Show the results in the order of growth. Explain what do you see. \
 Hint: these data (data in long form) is not the simplest to compute growth. But you may want to check out the lag() function. And do not forget to group data by continent when using lag(), otherwise your results will be messed up! See [**https://faculty.washington.edu/otoomet/info201-book/dplyr.html#dplyr-helpers-compute**](https://faculty.washington.edu/otoomet/info201-book/dplyr.html#dplyr-helpers-compute).\
+```{r 4-5, echo=FALSE, message=TRUE, warning=TRUE}
+# Compute the average life expectancy growth from 1960 to 2019 by continent
+life_expectancy_growth <- gapdata %>%
+  filter(!is.na(lifeExpectancy) & !is.na(time) & time %in% c(1960, 2019) & !is.na(region)) %>%
+  group_by(region) %>%
+  mutate(avg_growth = (lifeExpectancy - lag(lifeExpectancy))/lag(lifeExpectancy)) %>%
+  filter(time == 2019) %>%
+  summarize(avg_growth = mean(avg_growth, na.rm = TRUE)) %>%
+  arrange(desc(avg_growth))
+
+# Print the results
+knitr::kable(life_expectancy_growth, align = "c")
+#the life expectancy growth is higher for low GDP countries
+```
+
+    The life expectancy growth is higher for lower GDP countries.
 
 6. (6pt) Show the histogram of GDP per capita for years of 1960 and 2019. Try to put both histograms on the same graph, see how well you can do it! \
+```{r 4-6,echo=FALSE, message=TRUE, warning=TRUE}
+gdp_1960_2019 <- gapdata %>% 
+  filter(time %in% c(1960, 2019) & !is.na(time) & !is.na(GDP_PC)) %>% 
+  select(time, GDP_PC)
+ggplot(gdp_1960_2019, aes(x=GDP_PC, fill=as.factor(time))) +
+  geom_histogram(alpha=0.5, position="dodge", bins=20) +
+  scale_fill_manual(values=c("blue", "red")) +
+  labs(title="Histogram of GDP per capita for 1960 and 2019",
+       x="GDP per capita", y="Frequency") +
+  theme_classic()
+```
+
 
 7. (6pt) What was the ranking of US in terms of life expectancy in 1960 and in 2019? (When counting from top.) \
 Hint: check out the function rank()! \
 Hint2: 17 for 1960. \
+```{r 4-7, results="asis", echo=FALSE, message=TRUE, warning=TRUE}
+# Rank of the US in 1960
+rank_1960 <- gapdata %>% 
+  filter(time == 1960 & !is.na(name)) %>% 
+  select(name, lifeExpectancy) %>% 
+  arrange(desc(lifeExpectancy)) %>% 
+  mutate(rank = rank(desc(lifeExpectancy))) %>% 
+  filter(name == "United States of America") %>% 
+  pull(rank)
+
+# Rank of the US in 2019
+rank_2019 <- gapdata %>% 
+  filter(time == 2019 & !is.na(name)) %>% 
+  select(name, lifeExpectancy) %>% 
+  arrange(desc(lifeExpectancy)) %>% 
+  mutate(rank = rank(desc(lifeExpectancy))) %>% 
+  filter(name == "United States of America") %>% 
+  pull(rank)
+
+cat("\n   Rank of the US in terms of life expectancy in 1960: ", rank_1960, "\n")
+cat("\n   Rank of the US in terms of life expectancy in 2019: ", rank_2019, "\n")
+```
+
 
 8. (6pt) If you did this correctly, then you noticed that US ranking has been falling quite a bit. But we also have more countries in 2019–what about the relative rank divided by the corresponding number of countries that have LE data in the corresponding year? \
 Hint: 0.0904 for 1960. \
+```{r 4-8, echo=FALSE, message=TRUE, warning=TRUE}
+df_rank <- gapdata %>% 
+  filter(!is.na(lifeExpectancy) & !is.na(name) & !is.na(time)) %>% 
+  group_by(time) %>% 
+  mutate(rank = rank(lifeExpectancy, na.last = "keep")) %>% 
+  ungroup() %>% 
+  group_by(time) %>% 
+  mutate(rel_rank = rank / sum(!is.na(rank))) %>% 
+  ungroup()
+
+# Show the relative rank for the US
+knitr::kable(df_rank %>% 
+  filter(name == "United States of America") %>% 
+  select(time, rel_rank),align="c")
+```
+
 
 ---------------------------------------------------------------------
 
-Finally tell us how many hours did you spend on this PS.
+Finally tell us how many hours did you spend on this PS.\
+I spent 15 hours on this assignment.
