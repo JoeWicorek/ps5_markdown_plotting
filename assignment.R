@@ -93,5 +93,163 @@ ggplot(avg_co2_per_capita_by_continent_1960_2016, aes(x = region, y = avg_co2_pe
   scale_fill_manual(values = c("blue", "red")) +
   theme_minimal()
 ##3-6
+# Select the relevant columns and remove rows with missing data
+co2_per_capita_by_country <- gapdata %>%
+  select(time, region, name, co2_PC) %>%
+  filter(!is.na(region) & !is.na(name) & !is.na(co2_PC))
+#co2_per_capita_by_country
+# Filter for 2019
+co2_per_capita_2019 <- co2_per_capita_by_country %>%
+  filter(time == 2016)
+#co2_per_capita_2019
+# Group the data by continent and country and calculate the mean of CO2_per_capita
+avg_co2_per_capita_by_continent_country <- co2_per_capita_2019 %>%
+  group_by(region, name) %>%
+  summarize(avg_co2_per_capita = mean(co2_PC))
+#avg_co2_per_capita_by_continent_country
+# Find the three largest CO2 emitters per continent
+largest_emitters <- avg_co2_per_capita_by_continent_country %>%
+  group_by(region) %>%
+  top_n(3, avg_co2_per_capita)
+# Find the three smallest CO2 emitters per continent
+smallest_emitters <- avg_co2_per_capita_by_continent_country %>%
+  group_by(region) %>%
+  slice_tail(n = 3) %>%
+  arrange(region, avg_co2_per_capita)
+# Print the results
+cat("The three largest CO2 emitters per continent in 2019 are:\n")
+print(largest_emitters)
+cat("\nThe three smallest CO2 emitters per continent in 2019 are:\n")
+print(smallest_emitters)
+#4-1
+# Select the relevant columns and remove rows with missing data
+data_1960 <- gapdata %>%
+  filter(time == 1960 & !is.na(GDP_PC) & !is.na(lifeExpectancy) & !is.na(region) & !is.na(name))
 
+# Create a named vector of colors for each continent
+continent_colors <- c("Africa" = "red", "Asia" = "green", "Europe" = "blue", "Americas" = "purple", "Oceania" = "orange")
 
+# Create a named vector of sizes for each country
+country_sizes <- setNames(data_1960$totalPopulation / 1000000, data_1960$name)
+
+# Create the plot
+ggplot(data_1960, aes(x = GDP_PC, y = lifeExpectancy, color = region)) +
+  geom_point(aes(size = country_sizes), alpha = 0.6) +
+  scale_color_manual(values = continent_colors) +
+  scale_size_continuous(range = c(1, 10)) +
+  labs(title = "GDP per capita vs. life expectancy by country in 1960", x = "GDP per capita (USD)", y = "Life expectancy (years)") +
+  theme_bw()
+# the poorer countries (by GDP) have a lower life expectancy
+#4-2
+# Select the relevant columns and remove rows with missing data
+data_1960 <- gapdata %>%
+  filter(time == 2019 & !is.na(GDP_PC) & !is.na(lifeExpectancy) & !is.na(region) & !is.na(name))
+
+# Create a named vector of colors for each continent
+continent_colors <- c("Africa" = "red", "Asia" = "green", "Europe" = "blue", "Americas" = "purple", "Oceania" = "orange")
+
+# Create a named vector of sizes for each country
+country_sizes <- setNames(data_1960$totalPopulation / 1000000, data_1960$name)
+
+# Create the plot
+ggplot(data_1960, aes(x = GDP_PC, y = lifeExpectancy, color = region)) +
+  geom_point(aes(size = country_sizes), alpha = 0.6) +
+  scale_color_manual(values = continent_colors) +
+  scale_size_continuous(range = c(1, 10)) +
+  labs(title = "GDP per capita vs. life expectancy by country in 1960", x = "GDP per capita (USD)", y = "Life expectancy (years)") +
+  theme_bw()
+#4-3
+#we are improving the life expectancy of lower GDP countries (with exception of Africa)
+#4-4
+# Compute the average life expectancy for each continent in 1960 and 2019
+life_expectancy_avg <- gapdata %>%
+  filter(!is.na(lifeExpectancy) & !is.na(time) & time %in% c(1960, 2019) & !is.na(region)) %>%
+  group_by(region, time) %>%
+  summarize(avg_life_expectancy = mean(lifeExpectancy))
+
+# Print the results
+print(life_expectancy_avg)
+#Yes
+#4-5
+# Compute the average life expectancy growth from 1960 to 2019 by continent
+life_expectancy_growth <- gapdata %>%
+  filter(!is.na(lifeExpectancy) & !is.na(time) & time %in% c(1960, 2019) & !is.na(region)) %>%
+  group_by(region) %>%
+  mutate(avg_growth = (lifeExpectancy - lag(lifeExpectancy))/lag(lifeExpectancy)) %>%
+  filter(time == 2019) %>%
+  summarize(avg_growth = mean(avg_growth, na.rm = TRUE)) %>%
+  arrange(desc(avg_growth))
+
+# Print the results
+print(life_expectancy_growth)
+#the life expectancy growth is higher for low GDP countries
+#4-6
+gdp_1960_2019 <- gapdata %>% 
+  filter(time %in% c(1960, 2019)) %>% 
+  select(time, GDP_PC)
+ggplot(gdp_1960_2019, aes(x=GDP_PC, fill=as.factor(time))) +
+  geom_histogram(alpha=0.5, position="dodge", bins=20) +
+  scale_fill_manual(values=c("blue", "red")) +
+  labs(title="Histogram of GDP per capita for 1960 and 2019",
+       x="GDP per capita", y="Frequency") +
+  theme_classic()
+#4-7
+# Rank of the US in 1960
+rank_1960 <- gapdata %>% 
+  filter(time == 1960 & !is.na(name)) %>% 
+  select(name, lifeExpectancy) %>% 
+  arrange(desc(lifeExpectancy)) %>% 
+  mutate(rank = rank(desc(lifeExpectancy))) %>% 
+  filter(name == "United States of America") %>% 
+  pull(rank)
+
+# Rank of the US in 2019
+rank_2019 <- gapdata %>% 
+  filter(time == 2019 & !is.na(name)) %>% 
+  select(name, lifeExpectancy) %>% 
+  arrange(desc(lifeExpectancy)) %>% 
+  mutate(rank = rank(desc(lifeExpectancy))) %>% 
+  filter(name == "United States of America") %>% 
+  pull(rank)
+
+cat("Rank of the US in terms of life expectancy in 1960: ", rank_1960, "\n")
+cat("Rank of the US in terms of life expectancy in 2019: ", rank_2019, "\n")
+#4-8
+# Calculate relative rank for 1960
+rank_1960 <- gapdata %>% 
+  filter(time == 1960 & !is.na(name) & !is.na(lifeExpectancy)) %>% 
+  mutate(rank = rank(-lifeExpectancy)) %>% 
+  filter(name == "United States of America") %>% 
+  pull(rank)
+
+# Calculate relative rank for 2019
+rank_2019 <- gapdata %>% 
+  filter(time == 2019 & !is.na(name) & !is.na(lifeExpectancy)) %>% 
+  mutate(rank = rank(-lifeExpectancy)) %>% 
+  filter(name == "United States of America") %>% 
+  pull(rank)
+
+# Calculate number of countries with data for each year
+num_countries <- gapdata %>% 
+  group_by(time) %>% 
+  summarise(n_countries = sum(!is.na(lifeExpectancy)))
+
+# Calculate relative rank per number of countries with data for each year
+rel_rank <- c(rank_1960, rank_2019) / num_countries$n_countries
+rank_1960
+rank_2019
+rel_rank
+
+df_rank <- gapdata %>% 
+  filter(!is.na(lifeExpectancy) & !is.na(name) & !is.na(time)) %>% 
+  group_by(time) %>% 
+  mutate(rank = rank(lifeExpectancy, na.last = "keep")) %>% 
+  ungroup() %>% 
+  group_by(time) %>% 
+  mutate(rel_rank = rank / sum(!is.na(rank))) %>% 
+  ungroup()
+
+# Show the relative rank for the US
+df_rank %>% 
+  filter(name == "United States of America") %>% 
+  select(time, rel_rank)
