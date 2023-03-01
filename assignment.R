@@ -3,8 +3,8 @@ library(tidyverse)
 
 ##1-2
 gapdata <- read_delim("gapminder.csv")
-nrow(gapdata)
-ncol(gapdata)
+nrow <- nrow(gapdata)
+ncol <- ncol(gapdata)
 ##1-3
 head(gapdata,5)
 ##2-1

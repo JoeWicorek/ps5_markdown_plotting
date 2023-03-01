@@ -56,7 +56,7 @@ You first task is to do a very simple data check:
 This document. \
 
 2. (2pt) Load data. How many rows/columns do we have?  \
-```{r 1-2, message=FALSE, warning=FALSE, echo=FALSE}
+```{r 1-2, message=FALSE, warning=FALSE, echo=TRUE}
 library(tidyverse)
 gapdata <- read_delim("gapminder.csv")
 nrow <- nrow(gapdata)
@@ -65,7 +65,7 @@ ncol <- ncol(gapdata)
     There are `r nrow` rows and `r ncol` columns.
 
 3. (2pt) Print a small sample of data. Does it look OK? 
-```{r 1-3, echo=FALSE, message=TRUE, warning=TRUE}
+```{r 1-3, echo=TRUE, message=TRUE, warning=TRUE}
 knitr::kable(head(gapdata,5))
 ```
     Data seems ok.
@@ -75,7 +75,7 @@ knitr::kable(head(gapdata,5))
 # 2 Descriptive statistics (15pt)
 
 1. (3pt) How many countries are there in the dataset? Analyze all three: *iso3*, *iso2* and *name*.
-```{r 2-1, echo=FALSE, message=TRUE, warning=TRUE}
+```{r 2-1, echo=TRUE, message=TRUE, warning=TRUE}
 distinct_count <- gapdata %>%
   summarise(iso3_distinct = n_distinct(iso3),
             iso2_distinct = n_distinct(iso2),
@@ -88,7 +88,7 @@ distinct_count <- gapdata %>%
 2. If you did this correctly, you saw that there are more iso-2 codes than names, and there are even more *iso3*-codes. What is going on? Can you find it out?
 
     (a) (5pt) Find how many names are there for each iso-2 code. Are there any iso-2 codes that correspond to more than one name? What are these countries?
-```{r 2-2a, echo=FALSE, message=TRUE, warning=TRUE}
+```{r 2-2a, echo=TRUE, message=TRUE, warning=TRUE}
 gap_filtered <- gapdata %>%
   group_by(iso2) %>%
   summarize(unique_values = if_else(n_distinct(name) > 1, paste(unique(name), collapse = ", "), ""))
@@ -99,7 +99,7 @@ values <- gap_filtered[gap_filtered$unique_values != "",]$unique_values
         iso-2 code `r iso` has the following countries: `r values`
     
     (b) (5pt) Now repeat the same for name and iso3-code. Are there country names that have more than one iso3-code? What are these countries? Hint: two of these entitites are *CHANISL* and *NLD CURACAO*.
-```{r 2-2b, echo=FALSE, message=TRUE, warning=TRUE}
+```{r 2-2b, echo=TRUE, message=TRUE, warning=TRUE}
 # print unique values in name for each iso3 value if there is more than one
 gap_filtered <- gapdata %>%
   group_by(name) %>%
@@ -110,7 +110,7 @@ values <- gap_filtered[gap_filtered$unique_values != "",]$unique_values
         name `r name` has the following countries: `r values`
         
 3. (2pt) What is the minimum and maximum year in these data?
-```{r 2-3, echo=FALSE, message=TRUE, warning=TRUE}
+```{r 2-3, echo=TRUE, message=TRUE, warning=TRUE}
 min_year <- min(gapdata$time, na.rm = TRUE)
 max_year <- max(gapdata$time, na.rm = TRUE)
 ```
@@ -123,7 +123,7 @@ max_year <- max(gapdata$time, na.rm = TRUE)
 Next, let’s analyze CO2 emissions.
 
 1. (2pt) How many missing co2 emissions are there for each year? Analyze both missing *CO2* and *co2_PC*. Which years have most missing data? \
-```{r 3-1, echo=FALSE, message=TRUE, warning=TRUE}
+```{r 3-1, echo=TRUE, message=TRUE, warning=TRUE}
 missing_gap <- gapdata %>%
   group_by(time) %>%
   summarize(num_missing = sum(is.na(co2))) %>%
@@ -140,7 +140,7 @@ knitr::kable(most_missing, align = "c", col.names = c("Year", "   # Missing"))
 
 
 2. (5pt) Make a plot of total CO2 emissions over time for the U.S, China, and India. Add a few more countries of your choice. Explain what do you see. \
-```{r 3-2, echo=FALSE, message=TRUE, warning=TRUE}
+```{r 3-2, echo=TRUE, message=TRUE, warning=TRUE}
 # Filter the data to only include the U.S, China, and India, Russia, Canada
 mydata_filtered <- gapdata %>% 
   filter(name %in% c("United States of America", "China", "India", "Russian Federation", "Canada") & !is.na(name) & !is.na(time) & !is.na(co2))
@@ -156,7 +156,7 @@ ggplot(mydata_filtered, aes(x = time, y = co2, color = name)) +
     China by far has the highest and most dramatic increase in emissions, US has been dropping slightly since about 2005 \
 
 3. (5pt) Now let’s analyze the CO2 emissions per capita (*co2_PC*). Make a similar plot of thesame countries. What does this figure suggest? \
-```{r 3-3,echo=FALSE, message=TRUE, warning=TRUE}
+```{r 3-3,echo=TRUE, message=TRUE, warning=TRUE}
 # Filter the data to only include the U.S, China, and India, Russia, Canada
 mydata_filtered <- gapdata %>% 
   filter(name %in% c("United States of America", "China", "India", "Russian Federation", "Canada") & !is.na(name) &!is.na(co2_PC))
@@ -174,7 +174,7 @@ ggplot(mydata_filtered, aes(x = time, y = co2_PC, color = name)) +
 4. (6pt) Compute average CO2 emissions per capita across the continents (assume *region* is the same as continent). Comment what do you see. \
 Note: just compute averages over countries and ignore the fact that countries are of different size. \
 Hint: Americas 2016 should be 4.80. \
-```{r 3-4, echo=FALSE, message=TRUE, warning=TRUE}
+```{r 3-4, echo=TRUE, message=TRUE, warning=TRUE}
 co2_per_capita_by_country <- gapdata %>% 
   select(time,name, region, co2_PC) %>% 
   filter(!is.na(region) & !is.na(co2_PC))
@@ -193,7 +193,7 @@ ggplot(avg_co2_per_capita_by_continent, aes(x = time, y = avg_co2_per_capita, co
     Emissions per continents has been mostly steady for the past 30 years. \
 
 5. (7pt) Make a barplot where you show the previous results–average CO2 emissions per capita across continents in 1960 and 2016. \
-```{r 3-5, echo=FALSE, message=TRUE, warning=TRUE}
+```{r 3-5, echo=TRUE, message=TRUE, warning=TRUE}
 co2_per_capita_by_continent_1960_2016 <- co2_per_capita_by_country %>% 
   filter(time %in% c(1960, 2016))
 # Group the data by year and continent and calculate the mean of CO2_per_capita
@@ -210,7 +210,7 @@ ggplot(avg_co2_per_capita_by_continent_1960_2016, aes(x = region, y = avg_co2_pe
 
 
 6. Which countries are the three largest, and three smallest CO2 emitters (in terms of CO2 per capita) in 2019 for each continent? (Assume *region* is continent). \
-```{r 3-6, results="asis", echo=FALSE, message=TRUE, warning=TRUE}
+```{r 3-6, results="asis", echo=TRUE, message=TRUE, warning=TRUE}
 # Select the relevant columns and remove rows with missing data
 co2_per_capita_by_country <- gapdata %>%
   select(time, region, name, co2_PC) %>%
@@ -250,7 +250,7 @@ Let’s look at GDP per capita (*GDP_PC*)
 
 1. (8pt) Make a scatterplot of GDP per capita versus life expectancy by country, using data for 1960. Make the point size dependent on the country size, and color those according to the continent. Feel free to adjust the plot in other ways to make it better. \
 Comment what do you see there. \
-```{r 4-1, echo=FALSE, message=TRUE, warning=TRUE}
+```{r 4-1, echo=TRUE, message=TRUE, warning=TRUE}
 data_1960 <- gapdata %>%
   filter(time == 1960 & !is.na(GDP_PC) & !is.na(lifeExpectancy) & !is.na(region) & !is.na(name))
 
@@ -273,7 +273,7 @@ ggplot(data_1960, aes(x = GDP_PC, y = lifeExpectancy, color = region)) +
     The poorer countries (by GDP) have a lower life expectancy. \
 
 2. (4pt) Make a similar plot, but this time use 2019 data only. \
-```{r 4-2, echo=FALSE, message=TRUE, warning=TRUE}
+```{r 4-2, echo=TRUE, message=TRUE, warning=TRUE}
 # Select the relevant columns and remove rows with missing data
 data_1960 <- gapdata %>%
   filter(time == 2019 & !is.na(GDP_PC) & !is.na(lifeExpectancy) & !is.na(region) & !is.na(name))
@@ -300,7 +300,7 @@ ggplot(data_1960, aes(x = GDP_PC, y = lifeExpectancy, color = region)) +
 
 4. (6pt) Compute the average life expectancy for each continent in 1960 and 2019. Do the results fit with what do you see on the figures? \
 Note: here as *average*I mean just average over countries, ignore the fact that countries are of different size.\
-```{r 4-4, echo=FALSE, message=TRUE, warning=TRUE}
+```{r 4-4, echo=TRUE, message=TRUE, warning=TRUE}
 # Compute the average life expectancy for each continent in 1960 and 2019
 life_expectancy_avg <- gapdata %>%
   filter(!is.na(lifeExpectancy) & !is.na(time) & time %in% c(1960, 2019) & !is.na(region)) %>%
@@ -316,7 +316,7 @@ knitr::kable(life_expectancy_avg)
     
 5. (8pt) Compute the average LE growth from 1960-2019 across the continents. Show the results in the order of growth. Explain what do you see. \
 Hint: these data (data in long form) is not the simplest to compute growth. But you may want to check out the lag() function. And do not forget to group data by continent when using lag(), otherwise your results will be messed up! See [**https://faculty.washington.edu/otoomet/info201-book/dplyr.html#dplyr-helpers-compute**](https://faculty.washington.edu/otoomet/info201-book/dplyr.html#dplyr-helpers-compute).\
-```{r 4-5, echo=FALSE, message=TRUE, warning=TRUE}
+```{r 4-5, echo=TRUE, message=TRUE, warning=TRUE}
 # Compute the average life expectancy growth from 1960 to 2019 by continent
 life_expectancy_growth <- gapdata %>%
   filter(!is.na(lifeExpectancy) & !is.na(time) & time %in% c(1960, 2019) & !is.na(region)) %>%
@@ -334,7 +334,7 @@ knitr::kable(life_expectancy_growth, align = "c")
     The life expectancy growth is higher for lower GDP countries.
 
 6. (6pt) Show the histogram of GDP per capita for years of 1960 and 2019. Try to put both histograms on the same graph, see how well you can do it! \
-```{r 4-6,echo=FALSE, message=TRUE, warning=TRUE}
+```{r 4-6,echo=TRUE, message=TRUE, warning=TRUE}
 gdp_1960_2019 <- gapdata %>% 
   filter(time %in% c(1960, 2019) & !is.na(time) & !is.na(GDP_PC)) %>% 
   select(time, GDP_PC)
@@ -350,7 +350,7 @@ ggplot(gdp_1960_2019, aes(x=GDP_PC, fill=as.factor(time))) +
 7. (6pt) What was the ranking of US in terms of life expectancy in 1960 and in 2019? (When counting from top.) \
 Hint: check out the function rank()! \
 Hint2: 17 for 1960. \
-```{r 4-7, results="asis", echo=FALSE, message=TRUE, warning=TRUE}
+```{r 4-7, results="asis", echo=TRUE, message=TRUE, warning=TRUE}
 # Rank of the US in 1960
 rank_1960 <- gapdata %>% 
   filter(time == 1960 & !is.na(name)) %>% 
@@ -376,7 +376,7 @@ cat("\n   Rank of the US in terms of life expectancy in 2019: ", rank_2019, "\n"
 
 8. (6pt) If you did this correctly, then you noticed that US ranking has been falling quite a bit. But we also have more countries in 2019–what about the relative rank divided by the corresponding number of countries that have LE data in the corresponding year? \
 Hint: 0.0904 for 1960. \
-```{r 4-8, echo=FALSE, message=TRUE, warning=TRUE}
+```{r 4-8, echo=TRUE, message=TRUE, warning=TRUE}
 df_rank <- gapdata %>% 
   filter(!is.na(lifeExpectancy) & !is.na(name) & !is.na(time)) %>% 
   group_by(time) %>% 
